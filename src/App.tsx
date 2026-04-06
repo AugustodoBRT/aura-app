@@ -1,15 +1,45 @@
 import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import RegisterForm from "./components/RegisterForm";
 import LoginForm from "./components/LoginForm";
-import Dashboard from "./components/Dashboard";
+import NotesPage from "./pages/NotesPage";
+import NoteEditorPage from "./pages/NoteEditorPage";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
-type AppPage = "register" | "login";
+type AuthPage = "register" | "login";
 
-function AppContent() {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
-  const [currentPage, setCurrentPage] = useState<AppPage>("login");
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          background: "var(--bg)",
+          color: "var(--text-h)",
+          fontSize: "18px",
+        }}
+      >
+        Carregando...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AuthRoutes() {
+  const { user, isLoading } = useAuth();
+  const [currentPage, setCurrentPage] = useState<AuthPage>("login");
 
   if (isLoading) {
     return (
@@ -30,7 +60,7 @@ function AppContent() {
   }
 
   if (user) {
-    return <Dashboard />;
+    return <Navigate to="/notes" replace />;
   }
 
   return (
@@ -45,11 +75,47 @@ function AppContent() {
   );
 }
 
+function AppContent() {
+  return (
+    <Routes>
+      <Route path="/login" element={<AuthRoutes />} />
+      <Route path="/register" element={<AuthRoutes />} />
+      <Route
+        path="/notes"
+        element={
+          <ProtectedRoute>
+            <NotesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notes/new"
+        element={
+          <ProtectedRoute>
+            <NoteEditorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notes/:id"
+        element={
+          <ProtectedRoute>
+            <NoteEditorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

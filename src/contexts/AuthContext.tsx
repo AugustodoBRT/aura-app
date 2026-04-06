@@ -67,9 +67,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const ensureUsuarioRow = async (email: string, fullName: string) => {
+    console.log("[ensureUsuarioRow] Checking for email:", email);
+    // Check if row already exists
+    const { data: existing, error: selectError } = await supabase
+      .from("usuario")
+      .select("id_usuario")
+      .eq("email", email)
+      .maybeSingle();
+
+    console.log("[ensureUsuarioRow] SELECT result:", { existing, selectError });
+
+    if (!existing) {
+      console.log("[ensureUsuarioRow] Inserting new usuario row...");
+      const { data: inserted, error: insertError } = await supabase
+        .from("usuario")
+        .insert({
+          nome_usuario: fullName,
+          email: email,
+          login: email,
+          senha: "",
+        })
+        .select();
+
+      console.log("[ensureUsuarioRow] INSERT result:", { inserted, insertError });
+
+      if (insertError) {
+        console.error("[ensureUsuarioRow] INSERT FAILED:", insertError);
+      }
+    }
+  };
+
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -82,6 +113,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         throw new Error(error.message);
       }
+
+      // Insert into usuario table so the app services can find the user
+      if (data.user) {
+        await ensureUsuarioRow(email, fullName);
+      }
     } catch (error) {
       throw error;
     }
@@ -89,13 +125,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
         throw new Error(error.message);
+      }
+
+      // Backfill: ensure usuario row exists for users who signed up before this fix
+      if (data.user) {
+        const fullName = data.user.user_metadata?.full_name || email;
+        await ensureUsuarioRow(email, fullName);
       }
     } catch (error) {
       throw error;
