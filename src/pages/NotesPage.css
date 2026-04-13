@@ -269,6 +269,26 @@
   color: #fff;
 }
 
+/* ── Install PWA button ── */
+.install-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.15s;
+  font-family: var(--sans);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.install-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
 /* ── Offline alert ── */
 .offline-alert {
   margin-bottom: 16px;

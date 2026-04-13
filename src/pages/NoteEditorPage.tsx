@@ -107,24 +107,6 @@ export default function NoteEditorPage() {
     }
   };
 
-  // Geolocation
-  const handleGeolocation = () => {
-    if (!navigator.geolocation) {
-      message.error("Geolocalização não suportada");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude.toFixed(4);
-        const lon = pos.coords.longitude.toFixed(4);
-        setTexto((prev) => prev + `\n📍 Lat: ${lat}, Lon: ${lon}\n`);
-      },
-      () => {
-        message.error("Não foi possível obter localização");
-      }
-    );
-  };
-
   // Camera / image picker
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -202,9 +184,6 @@ export default function NoteEditorPage() {
       {/* ── Toolbar (edit mode only) ── */}
       {mode === "edit" && (
         <div className="editor-toolbar">
-          <button className="toolbar-btn" onClick={handleGeolocation}>
-            📍 Localização
-          </button>
           <button className="toolbar-btn" onClick={handleImageClick}>
             📷 Imagem
           </button>

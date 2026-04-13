@@ -51,6 +51,10 @@ export default function NotesPage() {
   const [newPastaName, setNewPastaName] = useState("");
   const [creatingPasta, setCreatingPasta] = useState(false);
 
+  // PWA install prompt
+  const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -83,6 +87,36 @@ export default function NotesPage() {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+
+  // PWA install prompt listener
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    const installedHandler = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", installedHandler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", installedHandler);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!installPrompt) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const promptEvent = installPrompt as any;
+    promptEvent.prompt();
+    const result = await promptEvent.userChoice;
+    if (result.outcome === "accepted") {
+      setIsInstalled(true);
+    }
+    setInstallPrompt(null);
+  };
 
   // Filter notes by selected pasta
   const pastaFilteredNotes = (() => {
@@ -230,6 +264,14 @@ export default function NotesPage() {
               onClick={handleEnableNotifications}
             >
               🔔 Ativar notificações
+            </button>
+          )}
+          {installPrompt && !isInstalled && (
+            <button
+              className="install-btn"
+              onClick={handleInstallApp}
+            >
+              📲 Instalar App
             </button>
           )}
           <button
