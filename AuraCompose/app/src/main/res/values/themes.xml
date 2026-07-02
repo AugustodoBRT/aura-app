@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema base sem ActionBar; a UI é controlada pelo Compose (MaterialTheme) -->
+    <style name="Theme.AuraCompose" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
